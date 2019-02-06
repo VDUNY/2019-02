@@ -1,0 +1,12 @@
+version: '3.4'
+
+services:
+  Tailer:
+    image: ${DOCKER_REGISTRY-}Tailer
+    build:
+      context: .
+      dockerfile: Tailer\Dockerfile
+    volumes:
+      - type: bind
+        source: ./data
+        target: /tmp
