@@ -15,6 +15,7 @@ namespace Tailer
             new EventId(0, "Normal Traffic"),
             new EventId(1, "High Traffic"),
             new EventId(2, "Statistics"),
+            new EventId(3, "Bad Data"),
         };
 
         private bool alerted = false;
@@ -75,9 +76,16 @@ namespace Tailer
                     var line = "";
                     while ((line = reader.ReadLine()) != null)
                     {
-                        if (Statistician.Update(line))
+                        try
                         {
-                            ShowStats();
+                            if (Statistician.Update(line))
+                            {
+                                ShowStats();
+                            }
+                        }
+                        catch (InvalidDataException)
+                        {
+                            Output.LogError(outputEvents[3], "Unable to parse log line: {line}", line);
                         }
                     }
 
@@ -98,11 +106,11 @@ namespace Tailer
             {
                 if (stats.ThresholdExceeded)
                 {
-                    Output.LogWarning(outputEvents[1], $"High traffic generated an alert - hits = {stats.WindowAverage}/sec, triggered at {DateTimeOffset.UtcNow}");
+                    Output.LogWarning(outputEvents[1], "High traffic generated an alert - hits = {WindowAverage}/sec, triggered at {DateTime}", stats.WindowAverage, DateTimeOffset.UtcNow);
                 }
                 else
                 {
-                    Output.LogWarning(outputEvents[0], $"High traffic alert recovered - hits = {stats.WindowAverage}/sec, recovered at {DateTimeOffset.UtcNow}");
+                    Output.LogWarning(outputEvents[0], "High traffic alert recovered - hits = {WindowAverage}/sec, recovered at {DateTime}", stats.WindowAverage, DateTimeOffset.UtcNow);
                 }
 
                 alerted = stats.ThresholdExceeded;

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Autofac;
 using Autofac.Extras.Moq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Internal;
 using Moq;
+using NLog.Extensions.Logging;
 using NUnit.Framework;
 
 namespace Tailer.Tests
@@ -170,6 +172,34 @@ namespace Tailer.Tests
                 }
 
                 mock.Mock<ILogger<TailProcessor>>().VerifyAll();
+            }
+        }
+
+        [Test]
+        public void Handles_Parsing_Errors_From_Statistician()
+        {
+            using (var mock = AutoMock.GetLoose())
+            {
+                mock.Provide<IConfiguration>(new Program());
+                var config = mock.Create<IConfiguration>();
+
+                mock.Provide<IStatistician>(new W3CStats(config));
+                var sut = mock.Create<TailProcessor>();
+
+                using (var stream = GetStreamFromString(
+                    "Line Zero\n" +
+                    "Line One\n" +
+                    "Line Two\n"))
+                {
+                    sut.Process(stream, 0, stream.Length);
+                }
+
+                mock.Mock<ILogger<TailProcessor>>().Verify(x => x.Log(
+                    It.IsAny<LogLevel>(),
+                    It.IsAny<EventId>(),
+                    It.Is<FormattedLogValues>(v => v.ToString().StartsWith("Unable to parse log line")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<object, Exception, string>>()), Times.Exactly(3));
             }
         }
     }
