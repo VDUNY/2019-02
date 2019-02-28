@@ -99,7 +99,6 @@ namespace Tailer.Tests
                 mock.Mock<IConfiguration>().Setup(c => c.Threshold).Returns(5);
                 mock.Mock<IConfiguration>().Setup(c => c.Window).Returns(30);
 
-                bool result = false;
                 var sut = mock.Create<W3CStats>();
 
                 Statistics stats;

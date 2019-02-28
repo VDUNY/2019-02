@@ -11,23 +11,23 @@ namespace Tailer
         public static IContainer Container { get; set; }
 
         /// <inheritdoc />
-        [Option(ShortName = "p", Description = "The path to watch")]
+        [Option(ShortName = "p", Description = "The path to watch (defaults to /tmp/access.log)")]
         public string Path { get; set; } = "/tmp/access.log";
 
         /// <inheritdoc />
-        [Option(CommandOptionType.NoValue, ShortName = "e", Description = "Include existing content in the file")]
+        [Option(CommandOptionType.NoValue, ShortName = "e", Description = "Parse existing content in the file")]
         public bool ParseExisting { get; } = false;
 
         /// <inheritdoc />
-        [Option(ShortName = "i", Description = "The number of seconds between statistics reports (defaults to 10s)")]
+        [Option(ShortName = "i", Description = "The number of seconds between statistics reports (defaults to 10)")]
         public int Interval { get; } = 10;
 
         /// <inheritdoc />
-        [Option(ShortName = "w", Description = "The number of seconds of traffic to consider when triggering threshold limits")]
+        [Option(ShortName = "w", Description = "The number of seconds of traffic which trigger threshold limits (defaults to 120)")]
         public int Window { get; } = 120;
 
         /// <inheritdoc />
-        [Option(ShortName = "t", Description = "The limit of requests per second that triggers high traffic alerts")]
+        [Option(ShortName = "t", Description = "The limit of requests per second that triggers high traffic alerts (defaults to 10)")]
         public int Threshold { get; } = 10;
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Tailer
         /// <summary>
         /// Initialize the DI Container
         /// </summary>
-        private void Initialize()
+        public void Initialize()
         {
             if (null != Container) return;
 
@@ -66,6 +66,9 @@ namespace Tailer
             // NLog is a handy way to do output without worrying about where it's going
             builder.Register(l => new LoggerFactory().AddNLog()).As<ILoggerFactory>();
             builder.RegisterGeneric(typeof(Logger<>)).As(typeof(ILogger<>)).SingleInstance();
+
+            builder.RegisterInstance(this).As<IConfiguration>();
+            builder.RegisterType<W3CStats>().As<IStatistician>();
             builder.RegisterType<TailProcessor>().As<IStreamProcessor>();
 
             Container = builder.Build();

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using Autofac;
 using Autofac.Extras.Moq;
 using Microsoft.Extensions.Logging;
@@ -53,6 +54,18 @@ namespace Tailer.Tests
             builder.RegisterInstance(mocker.Create<IStreamProcessor>()).As<IStreamProcessor>();
             Program.Container = builder.Build();
         }
+
+        [Test]
+        public void Program_Initialize_Should_Initialize_Loggers_and_StreamProcessors()
+        {
+            var p = new Program();
+            p.Initialize();
+
+            Assert.IsInstanceOf<ILogger<ProgramTests>>(Program.Container.Resolve<ILogger<ProgramTests>>());
+            Assert.IsInstanceOf<W3CStats>(Program.Container.Resolve<IStatistician>());
+            Assert.IsInstanceOf<TailProcessor>(Program.Container.Resolve<IStreamProcessor>());
+        }
+
 
         [Test]
         public void Should_Process_The_File_Path()
