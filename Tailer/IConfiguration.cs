@@ -11,7 +11,7 @@
         /// When false, the program processes the entire current log file and then additional lines as they're added
         /// When true, the program skips current content and starts at the end
         /// </summary>
-        bool SkipContent { get; }
+        bool ParseExisting { get; }
 
         /// <summary>
         /// The reporting interval between statistics output

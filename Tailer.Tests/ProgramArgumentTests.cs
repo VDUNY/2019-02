@@ -12,10 +12,10 @@ namespace Tailer.Tests
             Assert.AreEqual("/tmp/access.log", program.Path);
         }
         [Test]
-        public void Should_Have_SkipContent_Parameter_With_Default_Of_False()
+        public void Should_Have_ParseExisting_Parameter_With_Default_Of_False()
         {
             IConfiguration program = new Program();
-            Assert.AreEqual(false, program.SkipContent);
+            Assert.AreEqual(false, program.ParseExisting);
         }
 
         [Test]
