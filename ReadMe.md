@@ -6,6 +6,49 @@ The app is a simple .NET Core Console application (optionally) packaged into a d
 
 By default, when started, it ignores the current content of the file, and tracks new log lines as they're added.
 
+### Future Work
+
+There are a few improvements which could be done to improve the reporting of this project:
+
+#### 1. Further smoothing of the statistics and alerts in three ways
+
+The current implementation has a minor glitch in the way it calculates the interval: Because it supports parsing
+the events from an existing log file, it shows stats for every ten seconds _worth_ of logs that it has parsed.
+However, because the existence of traffic is not guaranteed, it can also trigger from elapsed wall-clock time.
+Obviously in the case of parsing logs, that means you get hundreds of reports per second, but additionally,
+on ocassion, this can cause two reports to appear somewhat closer together in real time than expected. I could
+remove the wall-clock timer, or the handling of log times to alleviate this.
+
+The current implementation calculates the "total traffic" by taking the sum of all hits over the last 2 minutes,
+divided by the number of seconds (120) to get the requests per second.  This results in a situation where if the
+threshold is set to 10 per second, and you're exactly at the threshold, ONE message more in the same second will
+put you over, but in the next second, just TWO messages less will put you back under the threshold -- if the
+traffic is very close to the exact threshold, you could bounce back and forth a lot. Making the threshold have a
+higher value for high traffic than for recovering would ease that in the same way a thermostat gives a few
+degrees between when it comes on and off.
+
+Additionally, the current definition of average means that even if there's no traffic, a huge spike can send it
+over the threshold instantly, and if the spike is big enough, it could take the full two minutes to drop back
+down, even if there's no further traffic. Requiring some certain number of the reporting intervals within the
+window to be above (or below) the threshold to trigger a change might allow those spikes to be ignored, or could
+be combined to prevent cooling off too quickly.
+
+#### 2. Better formatting
+
+If there was some guarantee of consistency about paths and user name maximum lengths, the reports could be
+formatted in columns instead of comma-separated lists, which would make them much easier to read and review.
+
+Additionally, the current coloring implementation (which highlights warnings) depends on NLog, which doesn't pass
+it's color through the docker output (at least on Windows). Switching to ASCII escape sequences for color could
+make those warnings more visible. Switching to json output from NLog could make formatting them and parsing them
+even easier.
+
+#### 3. Configuration
+
+Given more time, it would be good to store the desired parameters for the application in a config file. Having
+to pass in parameters to override the defaults can grow tiresome.
+
+
 ## Build Instructions
 
 To build you can use docker-compose, docker, or .NET core:
@@ -19,7 +62,7 @@ docker build . --file .\Tailer\Dockerfile -t Tailer
 ```
 
 ```PowerShell
-dotnet build .\Tailer.sln
+dotnet build .\Tailer.sln -c Release
 ```
 
 ## Run Instructions
