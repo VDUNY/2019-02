@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Tailer": {
+      "commandName": "Project",
+      "commandLineArgs": "-e -p C:\\Users\\Joel\\Projects\\Tailer\\data\\access.log"
+    }
+  }
+}
