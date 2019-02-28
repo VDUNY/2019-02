@@ -10,6 +10,27 @@ namespace Tailer
     {
         private static IContainer Container { get; set; }
 
+        /// <inheritdoc />
+        [Option(ShortName = "p", Description = "The path to watch")]
+        public string Path { get; } = "/tmp/access.log";
+
+        /// <inheritdoc />
+        [Option(CommandOptionType.SingleOrNoValue, ShortName = "s",
+            Description = "If specified, skip over existing content in the path (otherwise, processes current content and then tails new content)")]
+        public bool SkipContent { get; } = false;
+
+        /// <inheritdoc />
+        [Option(ShortName = "i", Description = "The number of seconds between statistics reports (defaults to 10s)")]
+        public int Interval { get; } = 10;
+
+        /// <inheritdoc />
+        [Option(ShortName = "w", Description = "The number of seconds of traffic to consider when triggering threshold limits")]
+        public int Window { get; } = 120;
+
+        /// <inheritdoc />
+        [Option(ShortName = "t", Description = "The limit of requests per second that triggers high traffic alerts")]
+        public int Threshold { get; } = 10;
+
         /// <summary>
         /// Delegates argument handling to CommandLineApplication
         /// </summary>
@@ -23,7 +44,10 @@ namespace Tailer
         {
             // Initialize DI Container after parameter parsing
             Initialize();
-            System.Console.WriteLine($"Processing {Path}");
+            using (var scope = Container.BeginLifetimeScope())
+            {
+                System.Console.WriteLine($"Processing {Path}");
+            }
         }
 
         /// <summary>
